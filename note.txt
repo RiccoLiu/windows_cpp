@@ -1,0 +1,156 @@
+SVN:
+	查看版本信息
+		svn --version
+
+	查看文件状态	
+		svn status | findstr "^M"
+
+MFC:
+	afx_msg: 用于标记消息映射函数，比如: 按钮点击、窗口重绘、定时器等事件的响应函数。
+	CStatic: 静态文本控件（Static Control）, 主要用途是显示提示信息、标签、图片等不需要用户交互的内容。
+	CRITICAL_SECTION: 加锁
+
+	反射机制:
+		DECLARE_DYNCREATE(CMultiCameraManager) : 放到 .h 头文件中	
+		IMPLEMENT_DYNCREATE(CMultiCameraManager, CFrameWnd): 放在 .cpp 文件中
+
+		创建反射对象：
+			CObject* pObj2 = CMyDialog::CreateObject();
+			CMyDialog* pDlg2 = dynamic_cast<CMyDialog*>(pObj2);
+
+		
+		DECLARE_DYNAMIC(CDebugDlg)
+		IMPLEMENT_DYNAMIC(CDebugDlg, CDialogEx)
+
+	模态对话框 与 非模态对话框：
+		1. 创建方式:
+			模态对话框
+				CMyDialog dlg;
+				INT_PTR nResponse = dlg.DoModal(); // 执行到这里会“卡住”，直到对话框关闭
+				if (nResponse == IDOK)
+				{
+					// 处理用户点击“确定”
+				}
+				// 只有当对话框关闭后，程序才会执行到这里
+				
+			非模态对话框
+				CMyDialog* pDlg = new CMyDialog; // 通常用new，因为对话框是异步的
+				pDlg->Create(IDD_MY_DIALOG, pParentWnd); // 立即返回
+				pDlg->ShowWindow(SW_SHOW);
+				// 这行代码会紧接着执行，而对话框已经在屏幕上显示了
+			
+		2. 消息循环
+
+			模态对话框
+				创建一个独立的嵌套的消息循环，父窗口和应用程序被冻结了，用户无法与父窗口或其他顶层窗口交互，直到模态对话框关闭。
+				
+				用户点击确定或者取消时，模态循环会收到 VM_COMMAND 消息，EndDialog 函数会被调用，模态循环会推出，DoModel函数返回，主程序继续执行
+			
+			非模态对话框
+				他完全依赖于应用程序的主消息循环，对话框创建后，他的所有消息均由应用程序的主消息(CWinApp::Run())进行分发和处理。
+				
+				用户可以自由在非模态对话框和主窗口间进行切换，也可以操作应用程序的其他部分。
+		
+		3. 生命周期和内存管理
+
+			模态对话框
+				通常是在栈上创建，生命周期由 DoModal() 调用控制，用户点击确定或者取消后，对话框就销毁。
+
+			非模态对话框
+				通常在堆上进行创建，因为create函数调用后立即会返回，栈上的对象会立即析构掉。
+				
+				生命周期是异步的，必须在对话框的 OnOK() 和 OnCancel() (或 PostNcDestroy) 中手动调用 delete this; 来释放内存，否则会造成内存泄漏。
+
+					void CMyDialog::OnOK()
+					{
+						// 如果你想让点击“确定”关闭对话框
+						CDialog::OnOK(); // 这会调用 EndDialog，但非模态对话框通常不用EndDialog
+						// 更常见的做法是直接 DestroyWindow
+						// DestroyWindow();
+					}
+
+					void CMyDialog::OnCancel()
+					{
+						// 如果你想让点击“取消”关闭对话框
+						// CDialog::OnCancel(); 
+						DestroyWindow(); // 销毁窗口
+					}
+
+					void CMyDialog::PostNcDestroy()
+					{
+						CDialog::PostNcDestroy();
+						delete this; // 在这里释放堆内存
+					}
+
+
+	CFrameWnd、 CDialogEx、 CView:
+		CFrameWnd： 适用于
+
+
+	OnTimer调用时机：
+		1. SetTimer() 设置定时器，
+			SetTimer(HWND, 1, 1000, nullptr); // 每 1000 毫秒（1秒）触发一次，ID=1
+
+			OnTimer(UINT_PTR nIDEvent); // nIDEvent = 1
+
+		2. 消息映射中必须包含 ON_WM_TIMER()
+			BEGIN_MESSAGE_MAP(CAssistDlg, CDialogEx)
+				ON_WM_TIMER()
+				// ... 其他消息
+			END_MESSAGE_MAP()
+
+
+
+DFScan代码:
+
+扫描仪参数校正：
+
+	调试电机速度：
+		电机速度越快，X越小
+		曝光时间影响帧率时，帧率越小，X越小
+		曝光时间不影响帧率时，X无变化
+
+DFSCAN调用层次：
+
+相机调用层次：
+	OnInitDialog：
+		StartThread：
+		
+			InitSSV：
+				mcm->InitSSV(sInitSSVMsg)：
+					pScan->InitSSV(cmmb, nCameraId)
+					
+						nRet = vHKCameraForLine[i]->OpenDevice();
+
+	
+			SetTimer(0, 500, NULL);
+	
+				OnTimer:
+					
+	
+	
+	ID_TOOLBAR_START
+		CDFScanDlg::OnToolbarStartOprator
+			OnToolbarStart:
+			
+				mcm->pScan->SetExposureTime
+				mcm->pScan->SetGain
+				mcm->pScan->SetSampling
+				mcm->pScan->SetDigitGain
+				mcm->pScan->SetBinning
+				mcm->pScan->SetZoomLevel(-1, 0);
+				mcm->pScan->SetOffset(0, scanPara.status.nOffsetY);
+				mcm->pScan->SetScanDirection(scanPara.status.nScanDirection);
+				mcm->pScan->EnableSingleMode(scanPara.status.nSingleMode);
+				
+				mcm->pScan->SetFlipH(scanPara.status.nFlipH);
+				mcm->pScan->SetFlipV(scanPara.status.nFlipV);
+		
+				mcm->pScan->StartScan(0);
+					vHKCameraForLine[i]->StartScan(bContinue)
+
+ctrl 5: 删除线
+
+
+
+
