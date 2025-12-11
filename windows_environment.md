@@ -46,6 +46,29 @@ git config --global color.ui auto
 
 ### 项目配置
 
+新建项目
+```
+    应用程序类型: 单文档
+    项目类型: MFC标准
+    MFC使用: 在共享 DLL 中使用MFC
+
+    命令行：使用经典菜单
+```
+
+预处理指令
+
+```
+C/C++ 传统函数scanf,strcpy,sprintf在 MSVC 平台会报C4996 错误，建议使用 _s 结尾的函数，当使用_s结尾的函数时需要加入预处理指令: _CRT_SECURE_NO_WARNINGS
+
+项目
+    -> 属性
+        -> c/c++
+            -> 预处理器
+                -> 预处理器定义： _CRT_SECURE_NO_WARNINGS
+
+```
+
+常用属性
 ```
 ->属性
     -> 配置属性

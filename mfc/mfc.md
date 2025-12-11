@@ -412,10 +412,80 @@ OnTvnSelchangingTree1： // 节点切换事件
 ```
 
 ## 标签页
- 
-标签页控件属于 TabControl 控件，树形控件常用属性如下：
 
-# 综合案例
+标签页控件属于 Tab Control 控件，标签页控件常用属性如下：
+
+添加两个对话框，并修改其属性:
+```
+外观:
+    Border(边框): None      // Dialog Frame 改成None : 不显示边框
+    Style(样式): child      // Popup 改为 child, 以子窗口的形式弹出
+```
+
+增加 TabSheet 项，标签页添加变量，变量类型为TabSheet,
+
+```
+OnInitDialog: 
+	m_tab.AddPage(TEXT("系统管理"), &m_dlg1, IDD_DIALOG1);
+	m_tab.AddPage(TEXT("系统设置"), &m_dlg2, IDD_DIALOG2);
+
+	m_tab.Show();
+```
+
+## TIPS
+
+```
+	ON_NOTIFY(NM_RCLICK, IDC_LIST_FRAMELIST, &CPicPreviewDlg::OnRclickListFramelist)    // 在 IDC_LIST_FRAMELIST 控件上点击鼠标右键
+	ON_NOTIFY(NM_CLICK, IDC_LIST_FRAMELIST, &CPicPreviewDlg::OnClickListFramelist)      // 在 IDC_LIST_FRAMELIST 控件上点击鼠标左键
+```
+
+## MFC API
+
+### CWnd
+
+- UpdateWindow: 调用此函数会发送 WM_PAINT 消息。  
+- Invalidate: 标记窗口为 无效区域， 不会立即重绘该区域，等下次消息触发时会重绘该区域
+ 
+
+### CButton
+
+- SetCheck(): 设置按钮的是否选中
+
+
+# 销售系统
+
+## 新建项目
+
+```
+应用程序类型: 单文档
+项目类型: MFC标准
+MFC使用: 在共享 DLL 中使用MFC
+
+命令行：使用经典菜单
+    不使用停靠传统工具栏
+```
+
+添加资源后，修改窗口图标和位置
+```
+CMainFrame::OnCreate：
+    // 设置窗口图标
+    HICON hIcon = AfxGetApp()->LoadIconW(IDI_ICON_WIN);
+    if (hIcon != nullptr) {
+        SetClassLongPtr(m_hWnd, GCLP_HICON, (LONG_PTR)hIcon);
+        //SetClassLongPtr(m_hWnd, GCLP_HICONSM, (LONG_PTR)hIcon);
+    }
+    // 设置右标题，左标题在 CSaleSystemDoc::OnNewDocument 中设置
+    SetTitle(TEXT("2025-12-08"));
+
+    //设置窗口大小
+    MoveWindow(0, 0, 800, 500);
+
+    //设置居中显示
+    CenterWindow();
+```
+
+
+#
 
 # Q&A
 
