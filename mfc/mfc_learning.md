@@ -1,80 +1,5 @@
 
 
-# Windows开发基础
-
-## TIPS
-
-### 打印LOG
-
-OutputDebugString： 根据环境选择使用打印宽字符或者窄字符  
-
-```
-// 常用打印LOG
-
-OutputDebugString(L"-------- KeyDown Start ---\n");
-
-wchar_t log_buf[1024];
-swprintf_s(log_buf, _countof(log_buf), L"assic: wParam = %#04x(%lc), S = %#04x, s = %#04x\n", (int)wParam, (int)wParam, (int)'S', (int)'s');
-OutputDebugString(log_buf);
-
-```
-
-### MFC 字符串 CString
-
-```
-// 1. MessageBox 和 OutputDebugString 直接使用
-CString str;
-str.Format(TEXT("CString: nChar = %u(%c), nRepCnt = %u, nFlags = %u"), nChar, nChar, nRepCnt, nFlags);
-MessageBox(str);
-OutputDebugString(str);
-
-// 2. char 与 CString之间的转换， 借助 CT2CA 工具
-const char* pchar = "Hello World";
-CString cstr(pchar);	
-
-CT2CA ca(cstr);
-char* pchar2 = ca; // 这里需要注意：当CT2CA 内存释放后，pchar2内存也会被释放
-
-// 3. 修改CString
-cstr = _T("LC: Hello World"); 
-
-// 一般不使用下面的方法，容易内存越界
-TCHAR* cstr_buffer = cstr.GetBuffer(100); // 如果原始缓冲区不够，会自动扩容到100
-_tcscpy_s(cstr_buffer, 100, _T("LC--------------LLCCC"));
-cstr.ReleaseBuffer();
-
-```
-
-
-## 查看文件是否存在 
-```
-BOOL file_access = (_taccess_s(L"1.bmp", 0) == 0);
-
-CString log_str;
-log_str.Format(TEXT("file_accress: %d\n"), file_access);
-OutputDebugString(log_str);
-```
-
-### Windows 字符集
-
-多字节编码：一个字符对应一个字节  
-宽字节编码: 一个字符对应多个字节, 比如: Unicode编码， utf-8 一个字符对应3个字节，GBK 一个字符对应 2个字节
-
-```
-TCHAR buf[1024];        // 多字节 与 宽字节编码自适应
-TEXT("Hello, world");   // 多字节 与 宽字节编码自适应
-
-char str[256] = "Hello, world";         // 多字节编码
-wchar_t wstr[236] = L"Hello, world";    // 宽字节编码
-
-char str2[256];
-wchar_t wstr2[256];
-
-strncpy(str2, _countof(str), str);      // 多字节拷贝, _countof： 计算数组容量大小
-wcscpy_s(wstr, _countof(wstr), wstr2);  // 宽字节拷贝
-
-```
-
 # MFC基础知识
 
 UI 框架不是线程安全的，所有逻辑应该使用通知的方式，在主线程中更新 UI。
@@ -435,21 +360,12 @@ OnInitDialog:
 ## TIPS
 
 ```
-	ON_NOTIFY(NM_RCLICK, IDC_LIST_FRAMELIST, &CPicPreviewDlg::OnRclickListFramelist)    // 在 IDC_LIST_FRAMELIST 控件上点击鼠标右键
-	ON_NOTIFY(NM_CLICK, IDC_LIST_FRAMELIST, &CPicPreviewDlg::OnClickListFramelist)      // 在 IDC_LIST_FRAMELIST 控件上点击鼠标左键
+ON_NOTIFY(NM_RCLICK, IDC_LIST_FRAMELIST, &CPicPreviewDlg::OnRclickListFramelist)    // 在 IDC_LIST_FRAMELIST 控件上点击鼠标右键
+ON_NOTIFY(NM_CLICK, IDC_LIST_FRAMELIST, &CPicPreviewDlg::OnClickListFramelist)      // 在 IDC_LIST_FRAMELIST 控件上点击鼠标左键
 ```
 
-## MFC API
+### MemDC 保存图片 
 
-### CWnd
-
-- UpdateWindow: 调用此函数会发送 WM_PAINT 消息。  
-- Invalidate: 标记窗口为 无效区域， 不会立即重绘该区域，等下次消息触发时会重绘该区域
- 
-
-### CButton
-
-- SetCheck(): 设置按钮的是否选中
 
 
 # 销售系统
@@ -484,9 +400,6 @@ CMainFrame::OnCreate：
     CenterWindow();
 ```
 
-
-#
-
 # Q&A
 
 1. 报错信息：
@@ -516,3 +429,6 @@ A:
                         // CDialogEx::OnOK(); 屏蔽掉退出代码
 ```
 
+3. Windows GDI 和许多图像格式（如 BMP）要求每一行像素数据在内存中按 4 字节边界对齐.
+
+CImage 分配内存时需要宽度向4对齐。
